@@ -1,0 +1,59 @@
+name: Auto Commit
+
+on:
+  push:
+    branches:
+      - master
+
+  schedule:
+    - cron: "*/30 * * * *"  # Run every 30 minutes
+
+permissions:
+  contents: write  # Ensure permission for scheduled commits
+
+jobs:
+  auto_commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Show current ref
+        run: echo "::debug::Ref = ${{ github.ref }}"
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Update timestamp
+        run: |
+          timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+          echo "$timestamp" > LAST_UPDATED
+
+      - name: Commit updated timestamp
+        run: |
+          git config --local user.email "brillnash.piner@gmail.com"
+          git config --local user.name "BrillNash"
+          git add -A
+
+          messages=(
+            "chore(bot): updated timestamp ⏰"
+            "chore(bot): keeping things fresh 🔄"
+            "chore(bot): just another automated update 🤖"
+            "chore(bot): keeping the heartbeat going 💓"
+            "chore(bot): routine check-in 📅"
+            "chore(bot): another tick on the clock 🕒"
+            "chore(bot): minor update, major vibes ✨"
+            "chore(bot): automation doing its thing 🚀"
+            "chore(bot): time update from the bot 🛠️"
+            "chore(bot): staying alive with updates 🎵"
+          )
+
+          random_index=$((RANDOM % ${#messages[@]}))
+          git commit -m "${messages[$random_index]}" || echo "No changes to commit."
+
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          directory: "."
+          github_token: ${{ secrets.GITHUB_TOKEN }}
